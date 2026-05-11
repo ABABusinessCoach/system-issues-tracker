@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Issues Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        header {
+            margin-bottom: 30px;
+            border-bottom: 3px solid #355574;
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            color: #355574;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #355574;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #355574;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2a4460;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(53, 85, 116, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #355574;
+            border: 1px solid #355574;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f4f8;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #ffe6e6;
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #355574;
+            box-shadow: 0 0 0 3px rgba(53, 85, 116, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: #f0f4f8;
+            color: #355574;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #355574;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-critical { background: #ffe6e6; color: #e74c3c; }
+        .badge-high { background: #fff0e6; color: #d68910; }
+        .badge-medium { background: #fffacd; color: #d68910; }
+        .badge-low { background: #e6f7e6; color: #27ae60; }
+        .badge-open { background: #fff0e6; color: #d68910; }
+        .badge-inprogress { background: #fff0e6; color: #d68910; }
+        .badge-resolved { background: #e6f7e6; color: #27ae60; }
+        .badge-closed { background: #e6e6e6; color: #666; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 900px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #355574;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            color: #355574;
+            font-size: 18px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section h3 {
+            color: #355574;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .form-grid.two { grid-template-columns: repeat(2, 1fr); }
+        .form-grid.full { grid-template-columns: 1fr; }
+
+        textarea {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #355574;
+            box-shadow: 0 0 0 3px rgba(53, 85, 116, 0.1);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .detail-label {
+            color: #666;
+            font-size: 11px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: #333;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .search-filters {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 System Issues Tracker</h1>
+            <p class="subtitle">Comprehensive 30-field issue tracking system with Moja & Passage teams</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Issues</div>
+                <div class="stat-value" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Critical</div>
+                <div class="stat-value" id="criticalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Open</div>
+                <div class="stat-value" id="openCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Resolved</div>
+                <div class="stat-value" id="resolvedCount">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add New Issue
+            </button>
+            <button class="btn-secondary" onclick="exportCSV()">
+                <i class="fas fa-download"></i> Export CSV
+            </button>
+        </div>
+
+        <div class="search-filters">
+            <input type="text" id="searchInput" placeholder="Search by ID, title, or owner..." onkeyup="renderIssues()">
+            <select id="filterStatus" onchange="renderIssues()">
+                <option value="">All Status</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+            </select>
+            <select id="filterImpact" onchange="renderIssues()">
+                <option value="">All Impact</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+
+        <table id="issuesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Title</th>
+                    <th>Impact</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th>Hours</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="issuesBody">
+                <tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No issues yet. Click "Add New Issue" to get started.</p></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Issue</h2>
+                <button class="close-btn" onclick="closeAddModal()">✕</button>
+            </div>
+
+            <form id="issueForm" onsubmit="submitForm(event)">
+                <div class="form-section">
+                    <h3>Basic Information</h3>
+                    <div class="form-grid">
+                        <input type="text" id="reportId" placeholder="Report ID" readonly style="background: #f5f5f5;">
+                        <input type="date" id="dateDetected" required>
+                        <input type="text" id="reportedBy" placeholder="Reported By" required>
+                    </div>
+                    <div class="form-grid">
+                        <input type="text" id="teamLocation" placeholder="Team/Location">
+                        <input type="text" id="system" placeholder="System/Module" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Issue Details</h3>
+                    <input type="text" id="title" placeholder="Title" required style="width: 100%; margin-bottom: 10px;">
+                    <textarea id="description" placeholder="Description"></textarea>
+                </div>
+
+                <div class="form-section">
+                    <h3>Impact & Status</h3>
+                    <div class="form-grid">
+                        <select id="impactLevel" required>
+                            <option value="">Impact Level</option>
+                            <option value="Critical">Critical</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                        <input type="number" id="affectedUsers" placeholder="Affected Users">
+                        <select id="status" required>
+                            <option value="">Status</option>
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="form-grid">
+                        <select id="frequency">
+                            <option value="">Frequency</option>
+                            <option value="Always">Always</option>
+                            <option value="Often">Often</option>
+                            <option value="Sometimes">Sometimes</option>
+                            <option value="Rarely">Rarely</option>
+                            <option value="Once">Once</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Expected vs Actual Behavior</h3>
+                    <textarea id="expectedBehavior" placeholder="Expected Behavior" style="margin-bottom: 10px;"></textarea>
+                    <textarea id="actualBehavior" placeholder="Actual Behavior"></textarea>
+                </div>
+
+                <div class="form-section">
+                    <h3>Reproduction & Documentation</h3>
+                    <textarea id="stepsToReproduce" placeholder="Steps to Reproduce" style="margin-bottom: 10px;"></textarea>
+                    <input type="text" id="screenshotLinks" placeholder="Screenshot Links" style="width: 100%;">
+                </div>
+
+                <div class="form-section">
+                    <h3>Environment Details</h3>
+                    <div class="form-grid">
+                        <input type="text" id="deviceType" placeholder="Device Type">
+                        <input type="text" id="osVersion" placeholder="OS/Version">
+                        <input type="text" id="appVersion" placeholder="App Version">
+                    </div>
+                    <div class="form-grid">
+                        <select id="internetConnection">
+                            <option value="">Internet Connection</option>
+                            <option value="WiFi">WiFi</option>
+                            <option value="Cellular">Cellular</option>
+                            <option value="Wired">Wired</option>
+                            <option value="Unknown">Unknown</option>
+                        </select>
+                        <input type="text" id="userRole" placeholder="User Role">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Business Impact & Resolution</h3>
+                    <input type="text" id="businessImpact" placeholder="Business Impact" style="width: 100%; margin-bottom: 10px;">
+                    <input type="text" id="workaround" placeholder="Workaround" style="width: 100%;">
+                </div>
+
+                <div class="form-section">
+                    <h3>Ownership</h3>
+                    <div class="form-grid two">
+                        <input type="text" id="internalOwner" placeholder="Internal Owner (Moja)">
+                        <input type="text" id="externalOwner" placeholder="External Owner (Passage)">
+                    </div>
+                    <textarea id="nextAction" placeholder="Next Action" style="margin-top: 10px;"></textarea>
+                </div>
+
+                <div class="form-section">
+                    <h3>Resolution Tracking</h3>
+                    <div class="form-grid">
+                        <input type="date" id="targetResolutionDate" placeholder="Target Resolution Date">
+                        <input type="date" id="dateResolved" placeholder="Date Resolved">
+                        <input type="number" id="mojaTimeToResolve" placeholder="Time (hours)">
+                    </div>
+                    <textarea id="resolution" placeholder="Resolution" style="margin-top: 10px; margin-bottom: 10px;"></textarea>
+                    <textarea id="rootCause" placeholder="Root Cause"></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">
+                    Add Issue
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="viewTitle">Issue Details</h2>
+                <button class="close-btn" onclick="closeViewModal()">✕</button>
+            </div>
+            <div id="viewContent"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-danger" onclick="deleteIssue()">Delete Issue</button>
+                <button class="btn-secondary" style="flex: 1;" onclick="closeViewModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let issues = [];
+        let currentViewId = null;
+
+        const statusColors = {
+            'Open': 'open',
+            'In Progress': 'inprogress',
+            'Resolved': 'resolved',
+            'On Hold': 'open',
+            'Closed': 'closed'
+        };
+
+        const impactColors = {
+            'Critical': 'critical',
+            'High': 'high',
+            'Medium': 'medium',
+            'Low': 'low'
+        };
+
+        function loadIssues() {
+            const saved = localStorage.getItem('systemIssues');
+            if (saved) {
+                issues = JSON.parse(saved);
+            }
+            renderIssues();
+            updateStats();
+        }
+
+        function saveIssues() {
+            localStorage.setItem('systemIssues', JSON.stringify(issues));
+        }
+
+        function generateReportId() {
+            return 'RPT-' + Math.floor(Math.random() * 9000 + 1000);
+        }
+
+        function updateStats() {
+            const total = issues.length;
+            const critical = issues.filter(i => i.impactLevel === 'Critical').length;
+            const open = issues.filter(i => i.status === 'Open' || i.status === 'In Progress').length;
+            const resolved = issues.filter(i => i.status === 'Resolved' || i.status === 'Closed').length;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('criticalCount').textContent = critical;
+            document.getElementById('openCount').textContent = open;
+            document.getElementById('resolvedCount').textContent = resolved;
+        }
+
+        function calculateTimeToResolve(dateDetected, dateResolved) {
+            if (!dateDetected || !dateResolved) return null;
+            const start = new Date(dateDetected);
+            const end = new Date(dateResolved);
+            const hours = (end - start) / (1000 * 60 * 60);
+            return Math.round(hours);
+        }
+
+        function renderIssues() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterImpact = document.getElementById('filterImpact').value;
+
+            let filtered = issues.filter(issue => {
+                const matchesText = !searchText || 
+                    issue.title.toLowerCase().includes(searchText) || 
+                    issue.reportId.toLowerCase().includes(searchText) || 
+                    (issue.internalOwner && issue.internalOwner.toLowerCase().includes(searchText));
+                const matchesStatus = !filterStatus || issue.status === filterStatus;
+                const matchesImpact = !filterImpact || issue.impactLevel === filterImpact;
+                return matchesText && matchesStatus && matchesImpact;
+            }).sort((a, b) => new Date(b.dateDetected || 0) - new Date(a.dateDetected || 0));
+
+            const tbody = document.getElementById('issuesBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-search"></i><p>No issues match your filters</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(issue => {
+                const timeToResolve = calculateTimeToResolve(issue.dateDetected, issue.dateResolved);
+                const displayTime = issue.mojaTimeToResolve || timeToResolve || '—';
+                const impactClass = impactColors[issue.impactLevel] || 'low';
+                const statusClass = statusColors[issue.status] || 'open';
+
+                return `
+                    <tr>
+                        <td><code style="font-size: 10px; background: #f5f5f5; padding: 2px 4px;">${issue.reportId}</code></td>
+                        <td>${issue.dateDetected || '—'}</td>
+                        <td>${issue.title.substring(0, 30)}${issue.title.length > 30 ? '...' : ''}</td>
+                        <td><span class="badge badge-${impactClass}">${issue.impactLevel}</span></td>
+                        <td><span class="badge badge-${statusClass}">${issue.status}</span></td>
+                        <td>${issue.internalOwner || '—'}</td>
+                        <td>${displayTime}${displayTime !== '—' ? 'h' : ''}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="viewIssue('${issue.reportId}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('reportId').value = generateReportId();
+            document.getElementById('dateDetected').valueAsDate = new Date();
+            document.getElementById('issueForm').reset();
+            document.getElementById('reportId').value = generateReportId();
+            document.getElementById('dateDetected').valueAsDate = new Date();
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+        }
+
+        function submitForm(e) {
+            e.preventDefault();
+
+            const newIssue = {
+                reportId: document.getElementById('reportId').value,
+                dateDetected: document.getElementById('dateDetected').value,
+                reportedBy: document.getElementById('reportedBy').value,
+                teamLocation: document.getElementById('teamLocation').value,
+                system: document.getElementById('system').value,
+                title: document.getElementById('title').value,
+                impactLevel: document.getElementById('impactLevel').value,
+                affectedUsers: document.getElementById('affectedUsers').value,
+                status: document.getElementById('status').value,
+                frequency: document.getElementById('frequency').value,
+                description: document.getElementById('description').value,
+                expectedBehavior: document.getElementById('expectedBehavior').value,
+                actualBehavior: document.getElementById('actualBehavior').value,
+                stepsToReproduce: document.getElementById('stepsToReproduce').value,
+                screenshotLinks: document.getElementById('screenshotLinks').value,
+                deviceType: document.getElementById('deviceType').value,
+                osVersion: document.getElementById('osVersion').value,
+                appVersion: document.getElementById('appVersion').value,
+                internetConnection: document.getElementById('internetConnection').value,
+                userRole: document.getElementById('userRole').value,
+                businessImpact: document.getElementById('businessImpact').value,
+                workaround: document.getElementById('workaround').value,
+                internalOwner: document.getElementById('internalOwner').value,
+                externalOwner: document.getElementById('externalOwner').value,
+                nextAction: document.getElementById('nextAction').value,
+                targetResolutionDate: document.getElementById('targetResolutionDate').value,
+                dateResolved: document.getElementById('dateResolved').value,
+                resolution: document.getElementById('resolution').value,
+                rootCause: document.getElementById('rootCause').value,
+                mojaTimeToResolve: document.getElementById('mojaTimeToResolve').value,
+                createdAt: new Date().toISOString()
+            };
+
+            issues.push(newIssue);
+            saveIssues();
+            closeAddModal();
+            renderIssues();
+            updateStats();
+            alert('Issue added successfully!');
+        }
+
+        function viewIssue(reportId) {
+            const issue = issues.find(i => i.reportId === reportId);
+            if (!issue) return;
+
+            currentViewId = reportId;
+            const timeToResolve = calculateTimeToResolve(issue.dateDetected, issue.dateResolved);
+            const displayTime = issue.mojaTimeToResolve || timeToResolve;
+            const impactClass = impactColors[issue.impactLevel] || 'low';
+            const statusClass = statusColors[issue.status] || 'open';
+
+            let html = `
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Date Detected</div>
+                        <div class="detail-value">${issue.dateDetected}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Reported By</div>
+                        <div class="detail-value">${issue.reportedBy}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Impact</div>
+                        <div class="detail-value"><span class="badge badge-${impactClass}">${issue.impactLevel}</span></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value"><span class="badge badge-${statusClass}">${issue.status}</span></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Team/Location</div>
+                        <div class="detail-value">${issue.teamLocation || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">System/Module</div>
+                        <div class="detail-value">${issue.system || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Affected Users</div>
+                        <div class="detail-value">${issue.affectedUsers || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Frequency</div>
+                        <div class="detail-value">${issue.frequency || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Internal Owner</div>
+                        <div class="detail-value">${issue.internalOwner || '—'}</div>
+                    </div>
+                </div>
+            `;
+
+            if (issue.description) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Description</strong><p style="margin: 5px 0; font-size: 12px;">${issue.description}</p></div>`;
+            }
+            if (issue.expectedBehavior) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Expected Behavior</strong><p style="margin: 5px 0; font-size: 12px;">${issue.expectedBehavior}</p></div>`;
+            }
+            if (issue.actualBehavior) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Actual Behavior</strong><p style="margin: 5px 0; font-size: 12px;">${issue.actualBehavior}</p></div>`;
+            }
+            if (issue.stepsToReproduce) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Steps to Reproduce</strong><p style="margin: 5px 0; font-size: 12px; white-space: pre-wrap;">${issue.stepsToReproduce}</p></div>`;
+            }
+            if (issue.screenshotLinks) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Screenshots</strong><p style="margin: 5px 0; font-size: 12px;"><a href="${issue.screenshotLinks}" target="_blank">${issue.screenshotLinks}</a></p></div>`;
+            }
+            if (issue.businessImpact) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Business Impact</strong><p style="margin: 5px 0; font-size: 12px;">${issue.businessImpact}</p></div>`;
+            }
+            if (issue.workaround) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Workaround</strong><p style="margin: 5px 0; font-size: 12px;">${issue.workaround}</p></div>`;
+            }
+            if (issue.nextAction) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Next Action</strong><p style="margin: 5px 0; font-size: 12px; white-space: pre-wrap;">${issue.nextAction}</p></div>`;
+            }
+
+            if (issue.deviceType || issue.osVersion || issue.appVersion || issue.internetConnection || issue.userRole) {
+                html += `<div style="background: #f5f5f5; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                    <strong style="color: #355574; font-size: 12px;">Environment</strong>`;
+                if (issue.deviceType) html += `<p style="margin: 3px 0; font-size: 11px;">Device: ${issue.deviceType}</p>`;
+                if (issue.osVersion) html += `<p style="margin: 3px 0; font-size: 11px;">OS: ${issue.osVersion}</p>`;
+                if (issue.appVersion) html += `<p style="margin: 3px 0; font-size: 11px;">App: ${issue.appVersion}</p>`;
+                if (issue.internetConnection) html += `<p style="margin: 3px 0; font-size: 11px;">Connection: ${issue.internetConnection}</p>`;
+                if (issue.userRole) html += `<p style="margin: 3px 0; font-size: 11px;">Role: ${issue.userRole}</p>`;
+                html += `</div>`;
+            }
+
+            if (issue.targetResolutionDate || issue.dateResolved || displayTime) {
+                html += `<div style="background: #f5f5f5; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                    <strong style="color: #355574; font-size: 12px;">Resolution Tracking</strong>`;
+                if (issue.targetResolutionDate) html += `<p style="margin: 3px 0; font-size: 11px;">Target: ${issue.targetResolutionDate}</p>`;
+                if (issue.dateResolved) html += `<p style="margin: 3px 0; font-size: 11px;">Resolved: ${issue.dateResolved}</p>`;
+                if (displayTime) html += `<p style="margin: 3px 0; font-size: 11px;">Time: ${displayTime} hours</p>`;
+                html += `</div>`;
+            }
+
+            if (issue.resolution) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Resolution</strong><p style="margin: 5px 0; font-size: 12px;">${issue.resolution}</p></div>`;
+            }
+            if (issue.rootCause) {
+                html += `<div style="margin-bottom: 15px;"><strong style="color: #355574; font-size: 12px;">Root Cause</strong><p style="margin: 5px 0; font-size: 12px;">${issue.rootCause}</p></div>`;
+            }
+
+            document.getElementById('viewTitle').textContent = `${issue.reportId}: ${issue.title}`;
+            document.getElementById('viewContent').innerHTML = html;
+            document.getElementById('viewModal').classList.add('active');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('active');
+            currentViewId = null;
+        }
+
+        function deleteIssue() {
+            if (confirm('Are you sure you want to delete this issue?')) {
+                issues = issues.filter(i => i.reportId !== currentViewId);
+                saveIssues();
+                closeViewModal();
+                renderIssues();
+                updateStats();
+                alert('Issue deleted successfully!');
+            }
+        }
+
+        function exportCSV() {
+            const headers = ['Report ID', 'Date Detected', 'Reported By', 'Team/Location', 'System/Module', 'Title', 'Impact Level', 'Affected Users', 'Status', 'Frequency', 'Description', 'Expected Behavior', 'Actual Behavior', 'Steps to Reproduce', 'Screenshot Links', 'Device Type', 'OS/Version', 'App Version', 'Internet Connection', 'User Role', 'Business Impact', 'Workaround', 'Internal Owner', 'External Owner', 'Next Action', 'Target Resolution Date', 'Resolution', 'Root Cause', 'Date Resolved', 'MOJA Time to Resolve (hours)'];
+
+            const rows = issues.map(i => [
+                i.reportId, i.dateDetected, i.reportedBy, i.teamLocation, i.system, i.title, i.impactLevel, i.affectedUsers, i.status, i.frequency, i.description, i.expectedBehavior, i.actualBehavior, i.stepsToReproduce, i.screenshotLinks, i.deviceType, i.osVersion, i.appVersion, i.internetConnection, i.userRole, i.businessImpact, i.workaround, i.internalOwner, i.externalOwner, i.nextAction, i.targetResolutionDate, i.resolution, i.rootCause, i.dateResolved, i.mojaTimeToResolve || calculateTimeToResolve(i.dateDetected, i.dateResolved) || ''
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `system-issues-${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+        }
+
+        // Initialize
+        loadIssues();
+    </script>
+</body>
+</html>
